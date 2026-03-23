@@ -11,11 +11,9 @@
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    
+         <link rel="icon" type="image/png" href="https://santhosh2025.neocities.org/img1.jpg" />
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <link rel="icon" type="image/png" href="https://santhosh2025.neocities.org/img1.jpg" />
     
     <!-- Marked.js for Markdown Preview -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -621,6 +619,9 @@
                             <span>Live HTML Preview</span>
                         </div>
                         <div class="flex gap-1">
+                            <button onclick="launchPreviewInNewTab()" class="w-7 h-7 flex items-center justify-center rounded hover:bg-vs-hover text-vs-textMuted transition-colors" title="Open in New Tab">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                            </button>
                             <button onclick="refreshPreview()" class="w-7 h-7 flex items-center justify-center rounded hover:bg-vs-hover text-vs-textMuted transition-colors" title="Refresh">
                                 <i class="fa-solid fa-rotate-right text-xs"></i>
                             </button>
@@ -965,6 +966,41 @@
                 els.liveIframe.srcdoc = mdHtml;
             } else {
                 els.liveIframe.srcdoc = code || '<div style="color:#aaa; font-family:sans-serif; padding:20px; text-align:center;">Empty HTML</div>';
+            }
+        }
+
+        function launchPreviewInNewTab() {
+            if (!els.editor.value.trim()) {
+                showToast('Editor is empty', 'error');
+                return;
+            }
+
+            let content = els.editor.value;
+            
+            if (state.format === 'md' && typeof marked !== 'undefined') {
+                content = `
+                    <html><head><style>
+                        body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; line-height: 1.6; padding: 2rem; color: #24292f; }
+                        h1, h2, h3 { border-bottom: 1px solid #eaecef; padding-bottom: .3em; }
+                        pre { background-color: #f6f8fa; padding: 16px; border-radius: 6px; overflow: auto; }
+                        code { background-color: #1f23280d; padding: .2em .4em; border-radius: 6px; font-family: monospace; }
+                        blockquote { border-left: .25em solid #d0d7de; padding: 0 1em; color: #656d76; }
+                        a { color: #0969da; text-decoration: none; }
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #d0d7de; padding: 6px 13px; }
+                        tr:nth-child(2n) { background-color: #f6f8fa; }
+                    </style></head><body>${marked.parse(content)}</body></html>
+                `;
+            }
+
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const newWindow = window.open(url, '_blank');
+            if(!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                showToast('Popup blocked! Allow popups to preview.', 'error');
+            } else {
+                showToast('Preview launched in new tab', 'success');
             }
         }
 
